@@ -6,6 +6,44 @@
 
 qsar is a lightweight Rust library for computing common molecular descriptors and integrating descriptor data with Linfa for basic QSAR modeling. The initial release focuses on an exact molecular weight calculator implemented in pure Rust (no native Open Babel / RDKit dependencies), convenient ndarray conversion utilities, and a minimal Linfa example.
 
+This project is developed and maintained by Saw Simeon, author of multiple highly cited works in QSAR, cheminformatics, and structure-based virtual screening.
+
+### Selected Publications
+
+- **Inactive-enriched machine-learning models exploiting patent data improve structure-based virtual screening for PDL1 dimerizers**  
+  P Gomez-Sacristan, **S Simeon**, VK Tran-Nguyen, S Patil, PJ Ballester  
+  *Journal of Advanced Research* **67**, 185–196 (2025)  
+
+- **A practical guide to machine-learning scoring for structure-based virtual screening**  
+  VK Tran-Nguyen, M Junaid, **S Simeon**, PJ Ballester  
+  *Nature Protocols* **18** (11), 3460–3511 (2023) – 68 citations  
+
+- **Structure-based virtual screening for PDL1 dimerizers: evaluating generic scoring functions**  
+  VK Tran-Nguyen, **S Simeon**, M Junaid, PJ Ballester  
+  *Current Research in Structural Biology* **4**, 206–210 (2022)  
+
+- **Characterizing the relationship between the chemical structures of drugs and their activities on primary cultures of pediatric solid tumors**  
+  **S Simeon**, G Ghislat, PJ Ballester  
+  *Current Medicinal Chemistry* **28** (38), 7830–7839 (2021)  
+
+- **Towards reproducible computational drug discovery**  
+  N Schaduangrat, S Lampa, **S Simeon**, MP Gleeson, O Spjuth et al.  
+  *Journal of Cheminformatics* **12** (1), 9 (2020) – 207 citations  
+
+- **Construction of quantitative structure activity relationship (QSAR) models to predict potency of structurally diversed Janus kinase 2 inhibitors**  
+  **S Simeon**, N Jongkon  
+  *Molecules* **24** (23), 4393 (2019) – 32 citations  
+
+- **Investigation of factors affecting the performance of in silico volume distribution QSAR models for human, rat, mouse, dog & monkey**  
+  (2019)  
+- **Insights into the EGFR SAR of N-phenylquinazolin-4-amine-derivatives using quantum mechanical pairwise-interaction energies**  (2019)  
+- **Towards the revival of interpretable QSAR models**  (2017)  
+- **Probing the origins of human acetylcholinesterase inhibition via QSAR modeling and molecular docking**  (2016) – 83 citations  
+- **Origin of aromatase inhibitory activity via proteochemometric modeling**  (2016)  
+
+Full list available on [Google Scholar → Saw Simeon](https://scholar.google.com/citations?hl=en&user=NQTxsJEAAAAJ)
+
+
 Goals
 - Provide a small, easy-to-publish crate for common QSAR descriptor tasks.
 - Keep the core pure Rust and dependency-light so it is easy to use across platforms.
@@ -22,7 +60,7 @@ Quickstart
 Add to your `Cargo.toml`:
 ```toml
 [dependencies]
-qsar = "0.1.0"
+qsar = "0.0.1"
 ```
 
 Compute molecular weight:
