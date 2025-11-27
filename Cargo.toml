@@ -9,7 +9,7 @@ homepage = "https://github.com/sawsimeon/qsar"
 documentation = "https://docs.rs/qsar"
 readme = "README.md"
 keywords = ["qsar", "cheminformatics", "descriptors", "machine-learning", "chemoinformatics"]
-categories = ["science", "chemistry"]
+categories = ["science"]
 authors = ["Saw Simeon <saw.s@ku.th>"]
 publish = true
 
