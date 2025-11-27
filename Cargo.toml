@@ -2,7 +2,6 @@
 name = "qsar"
 version = "0.0.1"
 edition = "2021"
-license = "MIT OR Apache-2.0"
 license-file = "LICENSE"
 description = "qsar: a small Rust library for computing molecular descriptors and integrating with Linfa for QSAR modeling."
 repository = "https://github.com/sawsimeon/qsar"
