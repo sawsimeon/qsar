@@ -10,12 +10,32 @@ use ndarray::{Array1, Array2};
 use linfa::prelude::*;
 use linfa_linear::LinearRegression;
 
-/// Convert descriptor and target vectors into ndarray arrays suitable for Linfa.
+/// Convert descriptor and target vectors into `ndarray` arrays suitable for Linfa.
 ///
 /// - `descriptors` is a Vec of samples, each sample is a Vec of features (n_samples x n_features).
 /// - `targets` is a Vec of target values (length n_samples).
 ///
-/// Returns `(features: Array2<f64>, targets: Array1<f64>)` on success or an `Err` describing the problem.
+/// The function validates that all descriptor rows have the same feature length
+/// and returns a row-major `Array2<f64>` of shape `(n_samples, n_features)` and
+/// an `Array1<f64>` for the targets.
+///
+/// # Examples
+///
+/// ```
+/// use qsar::models::to_ndarrays;
+/// let descriptors = vec![vec![1.0, 2.0], vec![3.0, 4.0]];
+/// let targets = vec![3.0, 7.0];
+/// let (x, y) = to_ndarrays(descriptors, targets).expect("convert to ndarrays");
+/// assert_eq!(x.shape(), &[2, 2]);
+/// assert_eq!(y.len(), 2);
+/// ```
+///
+/// # Errors
+///
+/// Returns an error when:
+/// - `descriptors` is empty,
+/// - rows in `descriptors` have inconsistent lengths, or
+/// - `targets.len() != descriptors.len()`.
 pub fn to_ndarrays(
     descriptors: Vec<Vec<f64>>,
     targets: Vec<f64>,
@@ -47,11 +67,24 @@ pub fn to_ndarrays(
     Ok((x, y))
 }
 
-/// Minimal, complete example:
-/// - converts small in-memory data to ndarrays,
-/// - creates a `Dataset`,
-/// - fits `LinearRegression` (default),
-/// - predicts on a new sample and returns the prediction.
+/// Minimal, complete example demonstrating conversion, training and prediction.
+///
+/// This function shows a small end-to-end flow:
+/// 1. Convert in-memory descriptor vectors to `ndarray`
+/// 2. Create a `linfa::Dataset`
+/// 3. Fit `linfa_linear::LinearRegression`
+/// 4. Predict on a single new sample and return the prediction vector
+///
+/// # Examples
+///
+/// ```
+/// use qsar::models::train_and_predict_example;
+///
+/// // This example uses synthetic data embedded in the function.
+/// let pred = train_and_predict_example().expect("train and predict");
+/// // Prediction is returned as an Array1 with one element for the single sample
+/// assert_eq!(pred.len(), 1);
+/// ```
 ///
 /// This function is intended as a documented example and smoke-test for integration with Linfa.
 pub fn train_and_predict_example() -> Result<Array1<f64>, Box<dyn Error>> {

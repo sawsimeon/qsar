@@ -12,6 +12,13 @@ use std::collections::HashMap;
 use thiserror::Error;
 
 /// Errors returned by descriptor functions.
+///
+/// This enum describes failures returned by descriptor calculation routines:
+/// - `ParseError`: input SMILES/InChI is unsupported or malformed.
+/// - `UnknownElement`: an element symbol was encountered which is not present
+///   in the built-in atomic mass table.
+///
+/// Use these variants to surface parsing errors or missing element data to callers.
 #[derive(Debug, Error)]
 pub enum DescriptorError {
     /// The provided input could not be parsed by the simple parser.
@@ -36,6 +43,22 @@ pub enum DescriptorError {
 /// used in descriptor examples. For full cheminformatics parsing consider adding
 /// an optional dependency on Open Babel or RDKit (via FFI) and gating that code
 /// behind a Cargo feature.
+///
+/// # Examples
+///
+/// ```
+/// use qsar::descriptors::molecular_weight;
+///
+/// // water (SMILES "O") -> H2O
+/// let mw = molecular_weight("O").expect("calculate MW");
+/// assert!((mw - (2.0 * 1.00782503223 + 15.99491461956)).abs() < 1e-6);
+/// ```
+///
+/// # Errors
+///
+/// Returns `DescriptorError::ParseError` for unsupported or malformed inputs,
+/// or `DescriptorError::UnknownElement` if the molecule contains an element not
+/// present in the built-in atomic weights table.
 pub fn molecular_weight(mol: &str) -> Result<f64, DescriptorError> {
     let weights = atomic_weights();
 

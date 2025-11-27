@@ -6,6 +6,7 @@
 //! in `src/models.rs`.
 use std::error::Error;
 use std::path::Path;
+use csv;
 
 /// Read a CSV file and extract descriptor columns and a target column.
 ///
@@ -17,13 +18,19 @@ use std::path::Path;
 /// - `descriptors` is `Vec<Vec<f64>>` with shape (n_samples x n_features)
 /// - `targets` is `Vec<f64>` with length n_samples
 ///
-/// Errors are returned if the CSV cannot be read, required columns are missing,
-/// or values fail to parse as `f64`.
+/// This function trims whitespace when parsing numeric fields and provides
+/// helpful error messages containing the column index and offending value.
 ///
-/// Example usage:
+/// # Examples
+///
 /// ```no_run
 /// use qsar::data_io::read_csv_descriptors;
-/// let (x, y) = read_csv_descriptors("data/dataset.csv", &["mol_wt", "logp"], "pIC50")?;
+///
+/// let (descriptors, targets) = read_csv_descriptors(
+///     "data/dataset.csv",
+///     &["mol_wt", "logp"],
+///     "pIC50",
+/// )?;
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 pub fn read_csv_descriptors<P: AsRef<Path>>(
@@ -32,9 +39,7 @@ pub fn read_csv_descriptors<P: AsRef<Path>>(
     target_col: &str,
 ) -> Result<(Vec<Vec<f64>>, Vec<f64>), Box<dyn Error>> {
     let mut rdr = csv::Reader::from_path(&path)?;
-    let headers = rdr
-        .headers()?
-        .clone();
+    let headers = rdr.headers()?.clone();
 
     // Map requested header names to column indices
     let mut feature_idxs: Vec<usize> = Vec::with_capacity(feature_cols.len());
@@ -87,16 +92,17 @@ pub fn read_csv_descriptors<P: AsRef<Path>>(
     Ok((descriptors, targets))
 }
 
-/// Convenience: load CSV from a reader (useful for tests and in-memory data).
+/// Convenience: load CSV from any reader (useful for tests and in-memory data).
+///
+/// This is identical in behavior to `read_csv_descriptors` but accepts any implementor
+/// of `std::io::Read` (for example a `&[u8]` buffer).
 pub fn read_csv_descriptors_from_reader(
     reader: impl std::io::Read,
     feature_cols: &[&str],
     target_col: &str,
 ) -> Result<(Vec<Vec<f64>>, Vec<f64>), Box<dyn Error>> {
     let mut rdr = csv::Reader::from_reader(reader);
-    let headers = rdr
-        .headers()?
-        .clone();
+    let headers = rdr.headers()?.clone();
 
     let mut feature_idxs: Vec<usize> = Vec::with_capacity(feature_cols.len());
     for &col in feature_cols {
