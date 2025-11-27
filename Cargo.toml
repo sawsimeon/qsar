@@ -11,7 +11,7 @@ documentation = "https://docs.rs/qsar"
 readme = "README.md"
 keywords = ["qsar", "cheminformatics", "molecular-descriptors", "machine-learning", "chemoinformatics"]
 categories = ["science", "chemistry"]
-authors = ["Your Name <you@example.com>"]
+authors = ["Saw Simeon <saw.s@ku.th>"]
 publish = true
 
 [dependencies]
