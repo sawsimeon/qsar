@@ -29,17 +29,7 @@ This project is developed and maintained by Saw Simeon, author of multiple highl
 - **Towards reproducible computational drug discovery**  
   N Schaduangrat, S Lampa, **S Simeon**, MP Gleeson, O Spjuth et al.  
   *Journal of Cheminformatics* **12** (1), 9 (2020) – 207 citations  
-
-- **Construction of quantitative structure activity relationship (QSAR) models to predict potency of structurally diversed Janus kinase 2 inhibitors**  
-  **S Simeon**, N Jongkon  
-  *Molecules* **24** (23), 4393 (2019) – 32 citations  
-
-- **Investigation of factors affecting the performance of in silico volume distribution QSAR models for human, rat, mouse, dog & monkey**  
-  (2019)  
-- **Insights into the EGFR SAR of N-phenylquinazolin-4-amine-derivatives using quantum mechanical pairwise-interaction energies**  (2019)  
-- **Towards the revival of interpretable QSAR models**  (2017)  
-- **Probing the origins of human acetylcholinesterase inhibition via QSAR modeling and molecular docking**  (2016) – 83 citations  
-- **Origin of aromatase inhibitory activity via proteochemometric modeling**  (2016)  
+  
 
 Full list available on [Google Scholar → Saw Simeon](https://scholar.google.com/citations?hl=en&user=NQTxsJEAAAAJ)
 
