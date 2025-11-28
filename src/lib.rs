@@ -1,46 +1,82 @@
 #![warn(missing_docs)]
-//! qsar — a small, focused Rust library for QSAR-related utilities.
+//! qsar — a small, focused, zero-dependency Rust library for QSAR modeling.
 //!
-//! This crate provides:
-//! - `descriptors` — a lightweight exact molecular-weight calculator from SMILES/InChI (small, pure-Rust parser).
-//! - `data_io` — small CSV helpers to load descriptor matrices and target vectors.
-//! - `models` — helpers to convert descriptor vectors into `ndarray` and a minimal Linfa example.
+//! This crate provides fast, pure-Rust implementations of common QSAR building blocks:
 //!
-//! The initial release intentionally avoids heavy native FFI dependencies (Open Babel / RDKit) so
-//! the crate stays portable and easy to publish. Full parser/toolkit integration can be added later
+//! - **descriptors** — molecular descriptors from SMILES (no RDKit/OpenBabel needed)
+//!   - Exact molecular weight
+//!   - Classic physicochemical properties (LogP, TPSA, H-bond donors/acceptors, etc.)
+//!   - Constitutional, topological, and fingerprint descriptors (growing!)
+//! - **data_io** — lightweight CSV/JSON loaders for descriptor matrices
+//! - **models** — helpers for `ndarray` ↔ `linfa` and simple training examples
+//!
+//! Everything is designed to be portable, fast to compile, and easy to embed in
+//! larger chem-informatics pipelines. Heavy native dependencies can be added later
 //! behind optional Cargo features.
 //!
 //! # Quick examples
 //!
-//! Compute exact molecular weight (SMILES):
+//! ### Physicochemical descriptors (most common in QSAR)
+//! ```
+//! use qsar::physchem_descriptors;
 //!
-//! ```no_run
+//! let props = physchem_descriptors("CCO").unwrap();  // ethanol
+//! println!("MolWt: {:.3}, LogP: {:.2}, TPSA: {:.1}, HBD: {}, HBA: {}",
+//!          props.mol_wt, props.mol_log_p, props.tpsa,
+//!          props.h_bond_donors, props.h_bond_acceptors);
+//! ```
+//!
+//! ### Classic molecular weight (still available)
+//! ```
 //! use qsar::molecular_weight;
-//!
-//! let mw = qsar::descriptors::molecular_weight("CCO").expect("compute MW");
-//! println!("Ethanol MW: {}", mw);
+//! let mw = molecular_weight("CC(=O)Oc1ccccc1C(=O)O").unwrap();  // aspirin
+//! println!("Aspirin MW: {:.3}", mw);
 //! ```
 //!
-//! Convert vectors to `ndarray` and train a simple linear model (see `models`):
-//!
+//! ### Load a dataset and train a model
 //! ```no_run
-//! use qsar::models::train_and_predict_example;
-//! let pred = train_and_predict_example().expect("train and predict");
-//! println!("Prediction: {:?}", pred);
-//! ```
+//! use qsar::{data_io::read_csv_descriptors, models::to_ndarrays};
+//! use linfa::prelude::*;
+//! use linfa_linear::LinearRegression;
 //!
-//! Load descriptors from CSV (see `data_io`):
-//!
-//! ```no_run
-//! use qsar::data_io::read_csv_descriptors;
-//! let (x, y) = read_csv_descriptors("data/dataset.csv", &["mol_wt", "logp"], "pIC50")?;
+//! let (desc, targets) = read_csv_descriptors("data.csv", &["mol_wt", "logp", "tpsa"], "pIC50")?;
+//! let (x, y) = to_ndarrays(&desc, &targets);
+//! let dataset = Dataset::new(x, y);
+//! let model = LinearRegression::new().fit(&dataset)?;
 //! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
-pub mod descriptors;
+
 pub mod data_io;
 pub mod models;
 
-// Re-exports for convenience (stable API surface)
-pub use descriptors::molecular_weight;
+// ─────────────────────────────────────────────────────────────────────────────
+// Descriptor modules (nested under a single `descriptors` module)
+// ─────────────────────────────────────────────────────────────────────────────
+pub mod descriptors {
+    //! All molecular descriptor implementations live here.
+    //!
+    //! Currently available:
+    //! - `physicochemical` — MolWt, LogP, TPSA, H-bond counts
+    //! - `molecular_weight` — legacy exact mass function (still public at crate root)
+    //! - `constitutional`, `topological`, `fingerprint` — coming soon / under development
+
+    pub mod physicochemical;
+    pub mod constitutional;
+    pub mod topological;
+    pub mod fingerprint;
+
+    // Keep the old standalone function available for backward compatibility
+    pub use physicochemical::molecular_weight;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Convenience re-exports (the nice, short names users love)
+// ─────────────────────────────────────────────────────────────────────────────
+pub use descriptors::physicochemical::{
+    physchem_descriptors,
+    PhysChemDescriptors,
+};
+pub use descriptors::molecular_weight; // still works exactly as before
+
 pub use data_io::read_csv_descriptors;
 pub use models::{to_ndarrays, train_and_predict_example};
