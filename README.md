@@ -50,7 +50,7 @@ Quickstart
 Add to your `Cargo.toml`:
 ```toml
 [dependencies]
-qsar = "0.0.2"
+qsar = "0.0.3"
 ```
 
 Compute molecular weight:
