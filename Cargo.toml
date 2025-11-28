@@ -31,7 +31,7 @@ once_cell = "1.17"
 pretty_assertions = "1.3"
 
 # Notes:
-# - This crate intentionally uses a small, pure-Rust lightweight parser for
+# - This crate intentionally uses a pure-Rust lightweight parser for
 #   basic molecular-descriptor tasks (no native Open Babel/RDKit dependency).
 # - To integrate a full parser later, add an optional feature and the relevant
 #   binding crates (e.g., openbabel-sys) and gate parsing code behind that feature.
