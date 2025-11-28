@@ -80,3 +80,10 @@ pub use descriptors::molecular_weight; // still works exactly as before
 
 pub use data_io::read_csv_descriptors;
 pub use models::{to_ndarrays, train_and_predict_example};
+
+pub use descriptors::fingerprint::{
+    maccs,
+    ecfp4,
+    atom_pairs,
+    topological_torsion,
+};
