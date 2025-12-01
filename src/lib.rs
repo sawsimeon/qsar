@@ -1,89 +1,98 @@
 #![warn(missing_docs)]
-//! qsar — a small, focused, zero-dependency Rust library for QSAR modeling.
+//! qsar — a fast, zero-dependency, pure-Rust QSAR toolbox.
 //!
-//! This crate provides fast, pure-Rust implementations of common QSAR building blocks:
+//! Ultra-lightweight molecular descriptor calculation and modeling utilities —
+//! no RDKit, no OpenBabel, no Python. Just Rust. Ideal for embedded use, WASM,
+//! serverless functions, or when you want full control and blazing compile times.
 //!
-//! - **descriptors** — molecular descriptors from SMILES (no RDKit/OpenBabel needed)
-//!   - Exact molecular weight
-//!   - Classic physicochemical properties (LogP, TPSA, H-bond donors/acceptors, etc.)
-//!   - Constitutional, topological, and fingerprint descriptors (growing!)
-//! - **data_io** — lightweight CSV/JSON loaders for descriptor matrices
-//! - **models** — helpers for `ndarray` ↔ `linfa` and simple training examples
+//! ### Currently available descriptors
 //!
-//! Everything is designed to be portable, fast to compile, and easy to embed in
-//! larger chem-informatics pipelines. Heavy native dependencies can be added later
-//! behind optional Cargo features.
+//! | Category            | Functions / Types                                 | Status     |
+//! |---------------------|----------------------------------------------------|------------|
+//! | Physicochemical     | `physchem_descriptors`, `PhysChemDescriptors`      | Complete   |
+//! | Constitutional      | `constitutional_descriptors`                       | Complete   |
+//! | Fingerprints        | `maccs`, `ecfp4`, `atom_pairs`, `topological_torsion` | Complete |
+//! | Molecular weight    | `molecular_weight` (legacy)                        | Complete   |
+//! | Topological         | (Wiener, Zagreb, Balaban J — coming soon)          | In progress |
 //!
-//! # Quick examples
+//! ### Quick examples
 //!
-//! ### Physicochemical descriptors (most common in QSAR)
 //! ```
-//! use qsar::physchem_descriptors;
+//! use qsar::{
+//!     physchem_descriptors,
+//!     constitutional_descriptors,
+//!     ecfp4,
+//!     maccs,
+//! };
 //!
-//! let props = physchem_descriptors("CCO").unwrap();  // ethanol
-//! println!("MolWt: {:.3}, LogP: {:.2}, TPSA: {:.1}, HBD: {}, HBA: {}",
-//!          props.mol_wt, props.mol_log_p, props.tpsa,
-//!          props.h_bond_donors, props.h_bond_acceptors);
-//! ```
+//! let smiles = "CC(=O)OC1=CC=CC=C1C(=O)O"; // aspirin
 //!
-//! ### Classic molecular weight (still available)
-//! ```
-//! use qsar::molecular_weight;
-//! let mw = molecular_weight("CC(=O)Oc1ccccc1C(=O)O").unwrap();  // aspirin
-//! println!("Aspirin MW: {:.3}", mw);
-//! ```
+//! // Classic physicochemical + Lipinski
+//! let phys = physchem_descriptors(smiles).unwrap();
+//! println!("MW: {:.2}, LogP: {:.2}, TPSA: {:.1}", phys.mol_wt, phys.mol_log_p, phys.tpsa);
+//! assert!(phys.lipinski_ro5());
 //!
-//! ### Load a dataset and train a model
-//! ```no_run
-//! use qsar::{data_io::read_csv_descriptors, models::to_ndarrays};
-//! use linfa::prelude::*;
-//! use linfa_linear::LinearRegression;
+//! // Simple counts
+//! let cons = constitutional_descriptors(smiles).unwrap();
+//! println!("Heavy atoms: {}, Rotatable bonds: {}", cons.heavy_atom_count, cons.num_rotatable_bonds);
 //!
-//! let (desc, targets) = read_csv_descriptors("data.csv", &["mol_wt", "logp", "tpsa"], "pIC50")?;
-//! let (x, y) = to_ndarrays(&desc, &targets);
-//! let dataset = Dataset::new(x, y);
-//! let model = LinearRegression::new().fit(&dataset)?;
-//! # Ok::<(), Box<dyn std::error::Error>>(())
+//! // State-of-the-art fingerprint
+//! let fp = ecfp4(smiles);
+//! println!("ECFP4 active bits: {}", fp.len());
+//!
+//! // Industry-standard substructure keys
+//! let maccs_fp = maccs(smiles);
+//! println!("MACCS fingerprint: {} bytes", maccs_fp.len());
 //! ```
 
 pub mod data_io;
 pub mod models;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Descriptor modules (nested under a single `descriptors` module)
+// All descriptor modules — grouped under `descriptors`
 // ─────────────────────────────────────────────────────────────────────────────
 pub mod descriptors {
-    //! All molecular descriptor implementations live here.
+    //! Core molecular descriptor implementations.
     //!
-    //! Currently available:
-    //! - `physicochemical` — MolWt, LogP, TPSA, H-bond counts
-    //! - `molecular_weight` — legacy exact mass function (still public at crate root)
-    //! - `constitutional`, `topological`, `fingerprint` — coming soon / under development
+    //! All functions take a SMILES string and return pure Rust values.
+    //! No native dependencies. No allocation-heavy toolkits.
 
     pub mod physicochemical;
     pub mod constitutional;
-    pub mod topological;
+    pub mod topological;    // placeholder — will be filled soon
     pub mod fingerprint;
 
-    // Keep the old standalone function available for backward compatibility
+    // Legacy molecular_weight function — kept public at crate root for old users
     pub use physicochemical::molecular_weight;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Convenience re-exports (the nice, short names users love)
+// Beautiful, ergonomic top-level re-exports
 // ─────────────────────────────────────────────────────────────────────────────
+
+// Physicochemical descriptors (most used in QSAR)
 pub use descriptors::physicochemical::{
     physchem_descriptors,
     PhysChemDescriptors,
 };
-pub use descriptors::molecular_weight; // still works exactly as before
 
-pub use data_io::read_csv_descriptors;
-pub use models::{to_ndarrays, train_and_predict_example};
+// Constitutional descriptors
+pub use descriptors::constitutional::{
+    constitutional_descriptors,
+    ConstitutionalDescriptors,
+};
 
+// Fingerprints — the stars of modern ML-based QSAR
 pub use descriptors::fingerprint::{
     maccs,
     ecfp4,
     atom_pairs,
     topological_torsion,
 };
+
+// Legacy molecular weight — still available at top level (no breaking change)
+pub use descriptors::molecular_weight;
+
+// Data I/O and modeling helpers
+pub use data_io::read_csv_descriptors;
+pub use models::{to_ndarrays, train_and_predict_example};
