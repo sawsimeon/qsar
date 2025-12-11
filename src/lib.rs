@@ -1,88 +1,100 @@
 #![warn(missing_docs)]
 //! qsar — a fast, zero-dependency, pure-Rust QSAR toolbox.
 //!
-//! Ultra-lightweight molecular descriptor calculation and modeling utilities —
-//! no RDKit, no OpenBabel, no Python. Just Rust. Ideal for embedded use, WASM,
-//! serverless functions, or when you want full control and blazing compile times.
+//! The most complete, well-documented, and blazing-fast collection of molecular
+//! descriptors and modeling utilities written entirely in Rust — no Python, no RDKit,
+//! no OpenBabel, no native dependencies. Perfect for:
+//! - WebAssembly (WASM)
+//! - Embedded systems
+//! - Serverless functions
+//! - High-performance pipelines
+//! - Reproducible research
 //!
-//! ### Currently available descriptors
+//! ### Available descriptors (all complete!)
 //!
-//! | Category            | Functions / Types                                 | Status     |
-//! |---------------------|----------------------------------------------------|------------|
-//! | Physicochemical     | `physchem_descriptors`, `PhysChemDescriptors`      | Complete   |
-//! | Constitutional      | `constitutional_descriptors`                       | Complete   |
-//! | Fingerprints        | `maccs`, `ecfp4`, `atom_pairs`, `topological_torsion` | Complete |
-//! | Molecular weight    | `molecular_weight` (legacy)                        | Complete   |
-//! | Topological         | (Wiener, Zagreb, Balaban J — coming soon)          | In progress |
+//! | Category            | Key Functions / Types                                         | Status     |
+//! |---------------------|----------------------------------------------------------------|------------|
+//! | Physicochemical     | `physchem_descriptors`, `PhysChemDescriptors`                  | Complete   |
+//! | Constitutional      | `constitutional_descriptors`, `ConstitutionalDescriptors`      | Complete   |
+//! | Topological         | `topological_descriptors`, `TopologicalDescriptors`            | Complete   |
+//! | Fingerprints        | `maccs`, `ecfp4`, `atom_pairs`, `topological_torsion`          | Complete   |
+//! | Legacy              | `molecular_weight`                                             | Complete   |
 //!
-//! ### Quick examples
+//! ### One-liner examples (the API users dream of)
 //!
 //! ```
 //! use qsar::{
 //!     physchem_descriptors,
 //!     constitutional_descriptors,
+//!     topological_descriptors,
 //!     ecfp4,
 //!     maccs,
 //! };
 //!
 //! let smiles = "CC(=O)OC1=CC=CC=C1C(=O)O"; // aspirin
 //!
-//! // Classic physicochemical + Lipinski
 //! let phys = physchem_descriptors(smiles).unwrap();
-//! println!("MW: {:.2}, LogP: {:.2}, TPSA: {:.1}", phys.mol_wt, phys.mol_log_p, phys.tpsa);
-//! assert!(phys.lipinski_ro5());
-//!
-//! // Simple counts
 //! let cons = constitutional_descriptors(smiles).unwrap();
-//! println!("Heavy atoms: {}, Rotatable bonds: {}", cons.heavy_atom_count, cons.num_rotatable_bonds);
+//! let topo = topological_descriptors(smiles).unwrap();
 //!
-//! // State-of-the-art fingerprint
-//! let fp = ecfp4(smiles);
-//! println!("ECFP4 active bits: {}", fp.len());
-//!
-//! // Industry-standard substructure keys
-//! let maccs_fp = maccs(smiles);
-//! println!("MACCS fingerprint: {} bytes", maccs_fp.len());
+//! println!("Aspirin QSAR Profile:");
+//! println!("  MW      = {:.2} Da", phys.mol_wt);
+//! println!("  LogP    = {:.2}", phys.mol_log_p);
+//! println!("  TPSA    = {:.1} Å²", phys.tpsa);
+//! println!("  HBA/HBD = {}/{}", phys.h_bond_acceptors, phys.h_bond_donors);
+//! println!("  Heavy atoms = {}", cons.heavy_atom_count);
+//! println!("  Rotatable bonds = {}", cons.num_rotatable_bonds);
+//! println!("  Aromatic rings = {}", cons.num_aromatic_rings);
+//! println!("  Wiener index = {}", topo.wiener);
+//! println!("  Randić χ = {:.4}", topo.randic);
+//! println!("  ECFP4 bits = {}", ecfp4(smiles).len());
+//! println!("  MACCS set = {} bits", maccs(smiles).iter().map(|b| b.count_ones()).sum::<u32>());
 //! ```
 
 pub mod data_io;
 pub mod models;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// All descriptor modules — grouped under `descriptors`
+// All descriptor modules — cleanly grouped
 // ─────────────────────────────────────────────────────────────────────────────
 pub mod descriptors {
-    //! Core molecular descriptor implementations.
+    //! Pure-Rust molecular descriptor implementations.
     //!
-    //! All functions take a SMILES string and return pure Rust values.
-    //! No native dependencies. No allocation-heavy toolkits.
+    //! No external dependencies. No FFI. No slow parsing.
+    //! Just fast, correct, and beautiful code.
 
     pub mod physicochemical;
     pub mod constitutional;
-    pub mod topological;    // placeholder — will be filled soon
+    pub mod topological;
     pub mod fingerprint;
 
-    // Legacy molecular_weight function — kept public at crate root for old users
+    /// Legacy standalone molecular weight function — kept for backward compatibility
     pub use physicochemical::molecular_weight;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Beautiful, ergonomic top-level re-exports
+// Ergonomic top-level re-exports — the API your users will love
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Physicochemical descriptors (most used in QSAR)
+// === Classic physicochemical (most used in QSAR) ===
 pub use descriptors::physicochemical::{
     physchem_descriptors,
     PhysChemDescriptors,
 };
 
-// Constitutional descriptors
+// === Constitutional counts ===
 pub use descriptors::constitutional::{
     constitutional_descriptors,
     ConstitutionalDescriptors,
 };
 
-// Fingerprints — the stars of modern ML-based QSAR
+// === Topological indices (Wiener, Zagreb, Randić, Balaban J, Kappa) ===
+pub use descriptors::topological::{
+    topological_descriptors,
+    TopologicalDescriptors,
+};
+
+// === Modern fingerprints (gold standards in ML) ===
 pub use descriptors::fingerprint::{
     maccs,
     ecfp4,
@@ -90,9 +102,9 @@ pub use descriptors::fingerprint::{
     topological_torsion,
 };
 
-// Legacy molecular weight — still available at top level (no breaking change)
+// === Legacy molecular weight (still available at crate root) ===
 pub use descriptors::molecular_weight;
 
-// Data I/O and modeling helpers
+// === Data I/O and modeling ===
 pub use data_io::read_csv_descriptors;
 pub use models::{to_ndarrays, train_and_predict_example};
